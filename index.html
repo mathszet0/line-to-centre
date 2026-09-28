@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圓的性質：圓心至弦的垂線與平分關係</title>
+<style>
+  :root {
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --primary: #2563eb;
+    --accent-orange: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border-color: #e2e8f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    padding: 16px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .app-container {
+    max-width: 960px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  header {
+    background: var(--card-bg);
+    padding: 20px 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+  }
+
+  h1 {
+    font-size: 1.35rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h1 span.badge {
+    background: #dbeafe;
+    color: var(--primary);
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  .subtitle {
+    margin-top: 6px;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Status Banner */
+  .status-banner {
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+
+  .status-banner.perpendicular {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 2px solid #a7f3d0;
+  }
+
+  .status-banner.non-perpendicular {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 2px solid #fecaca;
+  }
+
+  /* Main Workspace */
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  @media (min-width: 820px) {
+    .workspace {
+      grid-template-columns: 1.4fr 1fr;
+    }
+  }
+
+  .canvas-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  canvas {
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+    background: #fafafa;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  canvas:active {
+    cursor: grabbing;
+  }
+
+  /* Control Panel & Live Stats */
+  .panel-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .panel-section-title {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  .stat-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+
+  .stat-label {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .stat-value {
+    font-weight: 700;
+    font-family: monospace, monospace;
+    font-size: 1.05rem;
+  }
+
+  .val-blue { color: var(--primary); }
+  .val-orange { color: var(--accent-orange); }
+  .val-green { color: var(--success); }
+  .val-red { color: var(--danger); }
+
+  /* Visual Comparison Bar */
+  .diff-bar-container {
+    height: 12px;
+    width: 100%;
+    background: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    margin-top: 4px;
+  }
+
+  .diff-bar-an {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.1s ease;
+  }
+
+  .diff-bar-nb {
+    height: 100%;
+    background: var(--accent-orange);
+    transition: width 0.1s ease;
+  }
+
+  /* Sliders & Controls */
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  }
+
+  .btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+
+  .instruction-card {
+    background: #eff6ff;
+    border-left: 4px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: #1e40af;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <header>
+    <h1>
+      圓心至弦的垂線 (Perpendicular from Center to Chord)
+      <span class="badge">HK DSE 幾何性質</span>
+    </h1>
+    <div class="subtitle">
+      拖動 <strong>紅色點 N</strong> 沿着弦 AB 移動，觀察當 $ON$ <strong>垂直</strong>與<strong>不垂直</strong>於 $AB$ 時，對 $AN$ 與 $NB$ 長度的影響。
+    </div>
+  </header>
+
+  <div id="statusBanner" class="status-banner perpendicular">
+    <span id="statusText">ON ⊥ AB ➔ AN = NB (圓心至弦的垂線平分弦) ✅</span>
+    <span id="statusIcon">🎯 90.0°</span>
+  </div>
+
+  <div class="workspace">
+    <!-- Canvas Card -->
+    <div class="canvas-card">
+      <canvas id="geoCanvas" width="560" height="520"></canvas>
+    </div>
+
+    <!-- Live Math Dashboard & Controls -->
+    <div class="panel-card">
+      <div class="panel-section-title">實時幾何數據 (Live Data)</div>
+
+      <!-- Stat Box 1: Angle -->
+      <div class="stat-box">
+        <div class="stat-row">
+          <span class="stat-label">夾角 ∠ONA：</span>
+          <span id="valAngle" class="stat-value val-green">90.0°</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">垂直狀態：</span>
+          <span id="valPerpState" class="stat-value val-green">垂直 (ON ⊥ AB)</span>
+        </div>
+      </div>
+
+      <!-- Stat Box 2: Segment Lengths -->
+      <div class="stat-box">
+        <div class="stat-row">
+          <span class="stat-label">段落 AN 長度：</span>
+          <span id="valAN" class="stat-value val-blue">140.0 px</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">段落 NB 長度：</span>
+          <span id="valNB" class="stat-value val-orange">140.0 px</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">長度差 |AN - NB|：</span>
+          <span id="valDiff" class="stat-value val-green">0.0 px</span>
+        </div>
+
+        <!-- Length Comparison Bar -->
+        <div class="diff-bar-container" title="藍色代表 AN，橙色代表 NB">
+          <div id="barAN" class="diff-bar-an" style="width: 50%;"></div>
+          <div id="barNB" class="diff-bar-nb" style="width: 50%;"></div>
+        </div>
+      </div>
+
+      <!-- Interactive Slider Control -->
+      <div class="control-group">
+        <label for="nSlider">手動滑動點 N 位置：</label>
+        <input type="range" id="nSlider" min="0.05" max="0.95" step="0.005" value="0.5">
+      </div>
+
+      <!-- Snap Button -->
+      <button id="btnSnap" class="btn btn-primary" onclick="snapToMidpoint()">
+        ⚡ 一鍵自動對齊垂線 (ON ⊥ AB)
+      </button>
+
+      <!-- Educational Note -->
+      <div class="instruction-card">
+        💡 <strong>幾何定理總結：</strong><br>
+        • 當 $ON \perp AB$ 時，必定有 $AN = NB$ (垂線平分弦)。<br>
+        • 當 $ON$ 偏離直角（非垂線）時，$AN \neq NB$ (無法平分弦)。
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('geoCanvas');
+const ctx = canvas.getContext('2d');
+
+// Geometry State
+const center = { x: 280, y: 240 };
+const radius = 170;
+
+let angleA = Math.PI * 1.22; // ~220 degrees
+let angleB = Math.PI * 0.22; // ~40 degrees
+
+// t Parameter for point N on segment AB: N = A + t * (B - A)
+// t = 0.5 is exact midpoint (perpendicular)
+let tN = 0.5;
+
+// Dragging state
+let dragTarget = null; // 'A', 'B', 'N' or null
+
+// Calculate point coordinates
+function getPointA() {
+  return {
+    x: center.x + radius * Math.cos(angleA),
+    y: center.y + radius * Math.sin(angleA)
+  };
+}
+
+function getPointB() {
+  return {
+    x: center.x + radius * Math.cos(angleB),
+    y: center.y + radius * Math.sin(angleB)
+  };
+}
+
+function getPointN(A, B, t) {
+  return {
+    x: A.x + t * (B.x - A.x),
+    y: A.y + t * (B.y - A.y)
+  };
+}
+
+function dist(p1, p2) {
+  return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+}
+
+function drawRightAngle(vertex, p1, p2, size = 16) {
+  const v1 = { x: p1.x - vertex.x, y: p1.y - vertex.y };
+  const v2 = { x: p2.x - vertex.x, y: p2.y - vertex.y };
+  const len1 = Math.hypot(v1.x, v1.y);
+  const len2 = Math.hypot(v2.x, v2.y);
+  if (len1 === 0 || len2 === 0) return;
+
+  const u1 = { x: (v1.x / len1) * size, y: (v1.y / len1) * size };
+  const u2 = { x: (v2.x / len2) * size, y: (v2.y / len2) * size };
+
+  ctx.beginPath();
+  ctx.moveTo(vertex.x + u1.x, vertex.y + u1.y);
+  ctx.lineTo(vertex.x + u1.x + u2.x, vertex.y + u1.y + u2.y);
+  ctx.lineTo(vertex.x + u2.x, vertex.y + u2.y);
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+}
+
+function drawAngleArc(N, A, O, angleDeg) {
+  const angNA = Math.atan2(A.y - N.y, A.x - N.x);
+  const angNO = Math.atan2(O.y - N.y, O.x - N.x);
+
+  ctx.beginPath();
+  ctx.arc(N.x, N.y, 28, angNA, angNO, (angNO - angNA + Math.PI*2) % (Math.PI*2) > Math.PI);
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([3, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Label text near arc
+  const midAng = (angNA + angNO) / 2;
+  const lblX = N.x + 42 * Math.cos(midAng);
+  const lblY = N.y + 42 * Math.sin(midAng);
+
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillStyle = '#dc2626';
+  ctx.fillText(`${angleDeg.toFixed(1)}°`, lblX - 12, lblY + 4);
+}
+
+function drawTickMarks(p1, p2) {
+  const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const len = Math.hypot(dx, dy);
+  if (len === 0) return;
+
+  const nx = -dy / len;
+  const ny = dx / len;
+  const markSize = 7;
+
+  ctx.beginPath();
+  ctx.moveTo(mid.x - nx * markSize, mid.y - ny * markSize);
+  ctx.lineTo(mid.x + nx * markSize, mid.y + ny * markSize);
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+}
+
+function drawPoint(p, label, color = '#2563eb', radiusSize = 7, offset = {x: 12, y: 12}) {
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, radiusSize, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillStyle = '#0f172a';
+  ctx.fillText(label, p.x + offset.x, p.y + offset.y);
+}
+
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const A = getPointA();
+  const B = getPointB();
+  const N = getPointN(A, B, tN);
+
+  // Compute lengths
+  const lenAN = dist(A, N);
+  const lenNB = dist(N, B);
+  const lenAB = dist(A, B);
+  const diff = Math.abs(lenAN - lenNB);
+
+  // Compute Angle ∠ONA
+  const vecNA = { x: A.x - N.x, y: A.y - N.y };
+  const vecNO = { x: center.x - N.x, y: center.y - N.y };
+  const dot = vecNA.x * vecNO.x + vecNA.y * vecNO.y;
+  const magNA = Math.hypot(vecNA.x, vecNA.y);
+  const magNO = Math.hypot(vecNO.x, vecNO.y);
+  
+  let angleDeg = 90;
+  if (magNA > 0 && magNO > 0) {
+    const cosTheta = Math.max(-1, Math.min(1, dot / (magNA * magNO)));
+    angleDeg = Math.acos(cosTheta) * (180 / Math.PI);
+  }
+
+  const isPerpendicular = Math.abs(tN - 0.5) < 0.008 || Math.abs(angleDeg - 90) < 0.4;
+
+  // 1. Draw Circle Boundary
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 2. Draw Radii OA and OB (dashed helper lines)
+  ctx.beginPath();
+  ctx.setLineDash([4, 4]);
+  ctx.moveTo(center.x, center.y);
+  ctx.lineTo(A.x, A.y);
+  ctx.moveTo(center.x, center.y);
+  ctx.lineTo(B.x, B.y);
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 3. Draw Chord Segments AN and NB in distinct colors
+  if (isPerpendicular) {
+    // Both segments blue in perp state
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y);
+    ctx.lineTo(B.x, B.y);
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+  } else {
+    // AN Segment in Vibrant Blue
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y);
+    ctx.lineTo(N.x, N.y);
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // NB Segment in Bright Orange
+    ctx.beginPath();
+    ctx.moveTo(N.x, N.y);
+    ctx.lineTo(B.x, B.y);
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+  }
+
+  // 4. Draw Line Segment ON
+  ctx.beginPath();
+  ctx.moveTo(center.x, center.y);
+  ctx.lineTo(N.x, N.y);
+
+  if (isPerpendicular) {
+    // Glowing Emerald Line for Perpendicular
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 3.5;
+    ctx.shadowColor = 'rgba(16, 185, 129, 0.4)';
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+    ctx.shadowBlur = 0; // Reset shadow
+
+    // Draw Right Angle & Tick Marks
+    drawRightAngle(N, A, center);
+    drawTickMarks(A, N);
+    drawTickMarks(N, B);
+  } else {
+    // Red Dashed Line for Non-Perpendicular Warning
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw Angle Arc at N
+    drawAngleArc(N, A, center, angleDeg);
+  }
+
+  // 5. Draw Point Handles
+  drawPoint(center, 'O', '#0f172a', 6, {x: -20, y: -12});
+  drawPoint(A, 'A', '#2563eb', 8, {x: Math.cos(angleA)*22 - 6, y: Math.sin(angleA)*22 + 5});
+  drawPoint(B, 'B', '#2563eb', 8, {x: Math.cos(angleB)*22 - 6, y: Math.sin(angleB)*22 + 5});
+  
+  // Point N (Special Handle)
+  const colorN = isPerpendicular ? '#10b981' : '#ef4444';
+  drawPoint(N, 'N', colorN, 9, {x: 10, y: 18});
+
+  // 6. Draw Floating Length Text Tags above AN and NB
+  const midAN = { x: (A.x + N.x)/2, y: (A.y + N.y)/2 };
+  const midNB = { x: (N.x + B.x)/2, y: (N.y + B.y)/2 };
+
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillStyle = '#2563eb';
+  ctx.fillText(`AN = ${lenAN.toFixed(1)}`, midAN.x - 20, midAN.y - 12);
+
+  ctx.fillStyle = isPerpendicular ? '#2563eb' : '#d97706';
+  ctx.fillText(`NB = ${lenNB.toFixed(1)}`, midNB.x - 20, midNB.y - 12);
+
+  // Update UI Elements
+  updateUI(isPerpendicular, angleDeg, lenAN, lenNB, diff, lenAB);
+}
+
+function updateUI(isPerpendicular, angleDeg, lenAN, lenNB, diff, lenAB) {
+  const banner = document.getElementById('statusBanner');
+  const bannerText = document.getElementById('statusText');
+  const bannerIcon = document.getElementById('statusIcon');
+
+  const valAngle = document.getElementById('valAngle');
+  const valPerpState = document.getElementById('valPerpState');
+  const valAN = document.getElementById('valAN');
+  const valNB = document.getElementById('valNB');
+  const valDiff = document.getElementById('valDiff');
+
+  const barAN = document.getElementById('barAN');
+  const barNB = document.getElementById('barNB');
+
+  document.getElementById('nSlider').value = tN;
+
+  valAN.textContent = `${lenAN.toFixed(1)} px`;
+  valNB.textContent = `${lenNB.toFixed(1)} px`;
+  valDiff.textContent = `${diff.toFixed(1)} px`;
+
+  const pctAN = (lenAN / lenAB) * 100;
+  const pctNB = (lenNB / lenAB) * 100;
+  barAN.style.width = `${pctAN}%`;
+  barNB.style.width = `${pctNB}%`;
+
+  if (isPerpendicular) {
+    banner.className = 'status-banner perpendicular';
+    bannerText.textContent = 'ON ⊥ AB ➔ AN = NB (圓心至弦的垂線平分弦) ✅';
+    bannerIcon.textContent = '🎯 90.0°';
+
+    valAngle.textContent = '90.0°';
+    valAngle.className = 'stat-value val-green';
+
+    valPerpState.textContent = '垂直 (ON ⊥ AB)';
+    valPerpState.className = 'stat-value val-green';
+
+    valDiff.className = 'stat-value val-green';
+  } else {
+    banner.className = 'status-banner non-perpendicular';
+    bannerText.textContent = `ON 不垂直於 AB (∠ONA = ${angleDeg.toFixed(1)}°) ➔ AN ≠ NB (不平分條弦) ❌`;
+    bannerIcon.textContent = `⚠️ ${angleDeg.toFixed(1)}°`;
+
+    valAngle.textContent = `${angleDeg.toFixed(1)}°`;
+    valAngle.className = 'stat-value val-red';
+
+    valPerpState.textContent = '非垂直 (ON ∯ AB)';
+    valPerpState.className = 'stat-value val-red';
+
+    valDiff.className = 'stat-value val-red';
+  }
+}
+
+function snapToMidpoint() {
+  tN = 0.5;
+  render();
+}
+
+function getPointerPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    x: (clientX - rect.left) * (canvas.width / rect.width),
+    y: (clientY - rect.top) * (canvas.height / rect.height)
+  };
+}
+
+function onPointerDown(e) {
+  const pos = getPointerPos(e);
+  const A = getPointA();
+  const B = getPointB();
+  const N = getPointN(A, B, tN);
+
+  if (dist(pos, N) < 25) {
+    dragTarget = 'N';
+  } else if (dist(pos, A) < 25) {
+    dragTarget = 'A';
+  } else if (dist(pos, B) < 25) {
+    dragTarget = 'B';
+  }
+}
+
+function onPointerMove(e) {
+  if (!dragTarget) return;
+  const pos = getPointerPos(e);
+
+  if (dragTarget === 'A') {
+    angleA = Math.atan2(pos.y - center.y, pos.x - center.x);
+  } else if (dragTarget === 'B') {
+    angleB = Math.atan2(pos.y - center.y, pos.x - center.x);
+  } else if (dragTarget === 'N') {
+    // Project mouse position onto line segment AB to find parameter t
+    const A = getPointA();
+    const B = getPointB();
+    const ABx = B.x - A.x;
+    const ABy = B.y - A.y;
+    const lenSq = ABx * ABx + ABy * ABy;
+
+    if (lenSq > 0) {
+      const APx = pos.x - A.x;
+      const APy = pos.y - A.y;
+      let rawT = (APx * ABx + APy * ABy) / lenSq;
+
+      // Magnetic snap to midpoint t=0.5 if dragged within 0.47 to 0.53
+      if (Math.abs(rawT - 0.5) < 0.03) {
+        rawT = 0.5;
+      }
+
+      tN = Math.max(0.02, Math.min(0.98, rawT));
+    }
+  }
+
+  render();
+}
+
+function onPointerUp() {
+  dragTarget = null;
+}
+
+// Event Listeners
+canvas.addEventListener('mousedown', onPointerDown);
+canvas.addEventListener('mousemove', onPointerMove);
+window.addEventListener('mouseup', onPointerUp);
+
+canvas.addEventListener('touchstart', onPointerDown, { passive: true });
+canvas.addEventListener('touchmove', onPointerMove, { passive: true });
+window.addEventListener('touchend', onPointerUp);
+
+document.getElementById('nSlider').addEventListener('input', (e) => {
+  tN = parseFloat(e.target.value);
+  render();
+});
+
+// Initial Render
+render();
+</script>
+</body>
+</html>
